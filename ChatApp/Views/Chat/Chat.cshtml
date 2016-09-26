@@ -28,10 +28,37 @@
 <div class="row" style="height: 100%; margin-top: 15px;">
     
     <div class="col-md-6">
+        <b>Chat area</b>
+        <div class="row">
+            <div id="room" class="container-fluid" style="overflow: auto; margin-top: 10px; height: 500px; background-color: #ffdab9; border-radius: 15px">
+                <ul id="roomContent" style="position: absolute; height: 490px; width: 99%; overflow: auto; margin-top: 5px; left: 1px; text-align: left; list-style-type: none;">
+                    @foreach (var message in Model)
+                    {
+                        <li style="margin-left: -25px;">
+                            <b>@message.Author: </b>@message.Text  @*<span>@message.Time</span>*@
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 15px;">
+            <div class="col-md-1"></div>
+            <div class="col-md-2" style="text-align: right">
+                <h5><b>Message:</b></h5>
+            </div>
+            <div class="col-md-6" style="text-align: left">
+                <input id="newMessage" class="form-control" type="text" placeholder="Enter your message"/>
+            </div>
+            <div class="col-md-1">
+                <span id="sendButton" class="glyphicon glyphicon-send"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
         <div class="row">
             <b>Statistics</b>
         </div>
-        <div class="row">
+        <div class="row" style="margin-top: 10px;">
             <div class="col-md-4">
                 Average time per message: <span id="avgTimePerMessage"></span>
             </div>
@@ -45,32 +72,6 @@
         <div class="row">
             <canvas id="chart" height="150" width="300">Chart is Loading...</canvas>
         </div>
-    </div>
-    <div class="col-md-5">
-        <b>Chat area</b>
-        <div id="room" class="container-fluid" style="overflow: auto; margin-top: 10px; height: 500px; background-color: #ffdab9; border-radius: 15px">
-            <ul id="roomContent" style="position: absolute; height: 485px; width: 93%; overflow: auto; bottom: -2px; left: 1%; text-align: left; margin-left: 13px; list-style-type: none;">
-                @foreach (var message in Model)
-                {
-                    <li style="margin-left: -25px;">
-                        <b>@message.Author: </b>@message.Text  @*<span>@message.Time</span>*@
-                    </li>
-                }
-            </ul>
-        </div>
-    </div>
-</div>
-
-<div class="row" style="margin-top: 15px;">
-    <div class="col-md-6"></div>
-    <div class="col-md-1" style="text-align: right">
-        <h5><b>Message: </b></h5>
-    </div>
-    <div class="col-md-3" style="text-align: left">
-        <input id="newMessage" class="form-control" type="text" placeholder="Enter your message" />
-    </div>
-    <div class="col-md-1">
-        <span id="sendButton" class="glyphicon glyphicon-send" style="padding-right: 70px;"></span>
     </div>
 </div>
 
