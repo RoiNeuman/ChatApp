@@ -1,0 +1,42 @@
+﻿
+@{
+    ViewBag.Title = "Login";
+}
+
+<div class="row">
+    <div class="col-md-4"></div>
+    <div class="col-md-4">
+        <h2>Login Page</h2>
+    </div>
+    <div class="col-md-4"></div>
+</div>
+<div class="row">
+    <div class="col-md-4"></div>
+    <div class="col-md-4">
+        <h4>Enter a user name:</h4>
+        <div style="padding-left: 40px;">
+            <input id="name" type="text" class="form-control" placeholder="User Name" style="text-align: center;" />
+        </div>
+        <button id="submit" type="submit" class="btn btn-default" style="margin-top: 5px;">Submit</button>
+    </div>
+    <div class="col-md-4"></div>
+</div>
+<script>
+    $("#submit")
+        .click(function () {
+            var url = "/home/adduser?name=" + $("#name").val();
+            $.get(url,
+                function(data, status) {
+                    window.location.href = "/chat";
+                });
+        });
+    $("#name").keypress(function (e) {
+        if (e.which === 13) {
+            var url = "/home/adduser?name=" + $("#name").val();
+            $.get(url,
+                function(data, status) {
+                    window.location.href = "/chat";
+                });
+        }
+    });
+</script>
