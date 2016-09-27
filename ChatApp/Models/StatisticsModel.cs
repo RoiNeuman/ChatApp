@@ -16,16 +16,20 @@ namespace ChatApp.Models
         [JsonProperty("messagesPerHourChart")] private int[] _messagesPerHourChart;
         [JsonProperty("lettersPerHourChart")] private int[] _lettersPerHourChart;
 
+        // Statics variables for better time-complexity
+        private static TimeSpan _firstMessageTimeSpan;
+        private static double _sumMessagesTimeSum;
+
 
         public StatisticsModel()
         {
-            Init();
+            Init(null);
         }
 
-        public void Init()
+        public void Init(MessageModel message)
         {
             // Each private method calculates and return the required values.
-            _averageTimeForMessage = AverageTimeForMessage();
+            _averageTimeForMessage = AverageTimeForMessage(message);
             _averageLettersPerMessage = AverageLettersPerMessage();
             _averageLettersPerUser = new DynamicJsonObject(AverageLettersPerUser());
             _messagesPerHourChart = MessagesPerHourChart();
@@ -49,6 +53,35 @@ namespace ChatApp.Models
             double ticks = times.Average(x => x.Ticks);
             long longAvg = Convert.ToInt64(ticks);
             TimeSpan avg = new TimeSpan(longAvg);
+            if (avg.Days >= 1)
+                return avg.ToString(@"dd\.hh\:mm\:ss") + " days";
+            if (avg.Hours >= 1)
+                return avg.ToString(@"hh\:mm\:ss") + " hours";
+            if (avg.Minutes >= 1)
+                return avg.ToString(@"mm\:ss") + " minutes";
+            return avg.Seconds + " seconds";
+        }
+
+        // Same method with better time-complexity - O(1).
+        private string AverageTimeForMessage(MessageModel message)
+        {
+            if (MessagesList.Count == 0)
+                return "0 seconds";
+            if (message != null)
+            {
+                TimeSpan newMessageTimeSpan = new TimeSpan(message.Time.Ticks);
+                if (MessagesList.Count == 1)
+                {
+                    _firstMessageTimeSpan = newMessageTimeSpan;
+                    _sumMessagesTimeSum = 0;
+                }
+                else
+                {
+                    _sumMessagesTimeSum += newMessageTimeSpan.Add(_firstMessageTimeSpan.Negate()).Ticks;
+                }
+            }
+            double avgTicks = _sumMessagesTimeSum / MessagesList.Count;
+            TimeSpan avg = new TimeSpan(Convert.ToInt64(avgTicks));
             if (avg.Days >= 1)
                 return avg.ToString(@"dd\.hh\:mm\:ss") + " days";
             if (avg.Hours >= 1)

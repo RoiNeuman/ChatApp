@@ -13,14 +13,15 @@ namespace ChatApp.Hubs.Charts
         // Send data every hour
         private readonly int _updateInterval = 60*60*1000;
         private Timer _timer;
-        private volatile bool _sendingChartData = false;
-        private readonly object _chartUpateLock = new object();
-        private readonly StatisticsModel _statistics = new StatisticsModel();
+        private volatile bool _sendingChartData;
+        private readonly object _chartUpateLock;
+        private readonly StatisticsModel _statistics;
 
 
         private ChartDataUpdate()
         {
-
+            _statistics = new StatisticsModel();
+            _chartUpateLock = new object();
         }
 
         // Calling this method starts the Timer    
@@ -43,7 +44,7 @@ namespace ChatApp.Hubs.Charts
 
         private void SendChartData()
         {
-            _statistics.Init();
+            _statistics.Init(null);
             GetAllClients().All.UpdateChart(_statistics);
 
         }

@@ -113,7 +113,6 @@
                                 chat.server.send("@userName", $('#newMessage').val());
                                 // Clear text input and reset focus for next message.
                                 $('#newMessage').val('').focus();
-                                chat.server.updateStatistics();
                             }
                         });
 
@@ -122,7 +121,6 @@
                         chat.server.send("@userName", $('#newMessage').val());
                         // Clear text input and reset focus for next message.
                         $('#newMessage').val('').focus();
-                        chat.server.updateStatistics();
                     });
                 });
                 
