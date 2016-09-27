@@ -10,10 +10,12 @@ namespace ChatApp.Models
         public string Name { get; set; }
         public IList<MessageModel> Messages = new List<MessageModel>();
         public double AverageLattersPerMessage { get; set; }
+        private double _lettersSum;
 
         public UserModel(string name)
         {
             Name = name;
+            _lettersSum = 0;
             AverageLattersPerMessage = 0;
         }
 
@@ -23,7 +25,7 @@ namespace ChatApp.Models
                 return null;
             MessageModel newMessage = new MessageModel(text, Name);
             Messages.Add(newMessage);
-            GetAverageLattersPerMessage();
+            GetAverageLattersPerMessage(newMessage);
             ChatController.MessagesList.Add(newMessage);
             return newMessage;
         }
@@ -40,6 +42,18 @@ namespace ChatApp.Models
                     total += message.Text.Length;
                 }
                 AverageLattersPerMessage = Math.Round(total/Messages.Count, 2);
+            }
+        }
+
+        // Overload with better time-complexity - O(1).
+        private void GetAverageLattersPerMessage(MessageModel message)
+        {
+            if (Messages.Count == 0)
+                AverageLattersPerMessage = 0;
+            else
+            {
+                _lettersSum += message.Text.Length;
+                AverageLattersPerMessage = Math.Round(_lettersSum / Messages.Count, 2);
             }
         }
     }

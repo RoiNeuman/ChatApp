@@ -9,15 +9,17 @@ namespace ChatApp.Controllers
     public class HomeController : Controller
     {
         public static IList<UserModel> Users = new List<UserModel>();
+        public static IDictionary<string, UserModel> UserDictionary = new Dictionary<string, UserModel>();
 
         // GET /home/AddUser?Name="UserName"
         public ActionResult AddUser(string name)
         {
-            if (name == null || Users.Any(user => user.Name.Equals(name)))
+            if (name == null || UserDictionary.ContainsKey(name))
                 return Json(new {success = false}, JsonRequestBehavior.AllowGet);
             Console.WriteLine(name);
             UserModel newUser = new UserModel(name);
             Users.Add(newUser);
+            UserDictionary.Add(name, newUser);
             Session["userName"] = name;
             ViewBag.userName = name;
             return Json(new { success = true, name = name }, JsonRequestBehavior.AllowGet);

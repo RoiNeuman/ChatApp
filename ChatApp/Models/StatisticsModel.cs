@@ -16,9 +16,17 @@ namespace ChatApp.Models
         [JsonProperty("messagesPerHourChart")] private int[] _messagesPerHourChart;
         [JsonProperty("lettersPerHourChart")] private int[] _lettersPerHourChart;
 
-        // Statics variables for better time-complexity
+        // ---Statics variables for better time-complexity---
+        // For AverageTimeForMessage:
         private static TimeSpan _firstMessageTimeSpan;
         private static double _sumMessagesTimeSum;
+        // For AverageLettersPerMessage:
+        private static double _lettersSum = 0;
+        // For AverageLettersPerUser
+        private static IDictionary<string, object> _avgLetterPerUser = new Dictionary<string, object>();
+        // For ChartStatistics
+        private static int[] messagesPerHour = new int[168];
+        private static int[] lettersPerHour = new int[168];
 
 
         public StatisticsModel()
@@ -30,10 +38,11 @@ namespace ChatApp.Models
         {
             // Each private method calculates and return the required values.
             _averageTimeForMessage = AverageTimeForMessage(message);
-            _averageLettersPerMessage = AverageLettersPerMessage();
-            _averageLettersPerUser = new DynamicJsonObject(AverageLettersPerUser());
-            _messagesPerHourChart = MessagesPerHourChart();
-            _lettersPerHourChart = LetterPerHourChart();
+            _averageLettersPerMessage = AverageLettersPerMessage(message);
+            _averageLettersPerUser = new DynamicJsonObject(AverageLettersPerUser(message));
+            ChartStatistics(message);
+            _messagesPerHourChart = messagesPerHour;
+            _lettersPerHourChart = lettersPerHour;
         }
 
         private string AverageTimeForMessage()
@@ -62,7 +71,7 @@ namespace ChatApp.Models
             return avg.Seconds + " seconds";
         }
 
-        // Same method with better time-complexity - O(1).
+        // Overload with better time-complexity - O(1).
         private string AverageTimeForMessage(MessageModel message)
         {
             if (MessagesList.Count == 0)
@@ -99,6 +108,18 @@ namespace ChatApp.Models
             return Math.Round(avg / MessagesList.Count, 2);
         }
 
+        // Overload with better time-complexity - O(1).
+        private static double AverageLettersPerMessage(MessageModel message)
+        {
+            if (MessagesList.Count == 0)
+                return 0;
+            if (message != null)
+            {
+                _lettersSum += message.Text.Length;
+            }
+            return Math.Round(_lettersSum / MessagesList.Count, 2);
+        }
+
         private static IDictionary<string, object> AverageLettersPerUser()
         {
             IDictionary<string, object> avg = new Dictionary<string, object>();
@@ -107,6 +128,23 @@ namespace ChatApp.Models
                 avg.Add(user.Name, user.AverageLattersPerMessage);
             }
             return avg;
+        }
+
+        // Overload with better time-complexity - O(1).
+        private static IDictionary<string, object> AverageLettersPerUser(MessageModel message)
+        {
+            if (message == null) return _avgLetterPerUser;
+            if (_avgLetterPerUser.ContainsKey(message.Author))
+            {
+                _avgLetterPerUser[message.Author] =
+                    HomeController.UserDictionary[message.Author].AverageLattersPerMessage;
+            }
+            else
+            {
+                _avgLetterPerUser.Add(message.Author,
+                    HomeController.UserDictionary[message.Author].AverageLattersPerMessage);
+            }
+            return _avgLetterPerUser;
         }
 
         private static int[] MessagesPerHourChart()
@@ -136,6 +174,25 @@ namespace ChatApp.Models
                 }
             }
             return lettersPerHour;
+        }
+
+        // MessagesPerHour & LetterPerHour with better time-complexity - O(1).
+        private static void ChartStatistics(MessageModel message)
+        {
+            if (message != null)
+            {
+                messagesPerHour[167]++;
+                // Possible to use regular expression here to get only specific letters. (e.g. without spaces)
+                lettersPerHour[167] += message.Text.Length;
+            }
+            else if (MessagesList.Count != 0 && DateTime.Now.Subtract(MessagesList[MessagesList.Count - 1].Time).Hours >= 1)
+            {
+                // The 1 Hour interval progress the move the data in the array backward.
+                for (int i = 0; i < 166; i++)
+                {
+                    messagesPerHour[i] = messagesPerHour[i + 1];
+                }
+            }
         }
     }
 }
