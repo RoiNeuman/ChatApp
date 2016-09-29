@@ -30,6 +30,7 @@ namespace ChatApp.Models
         // For ChartStatistics
         private static int[] messagesPerHour = new int[168];
         private static int[] lettersPerHour = new int[168];
+        private static int _shiftNum;
         private static bool _isFirstLoad = true;
 
 
@@ -200,27 +201,43 @@ namespace ChatApp.Models
         {
             if (message != null)
             {
+                if (_isFirstLoad && MessagesList.Count == FirstMessageIndex)
+                {
+                    _isFirstLoad = false;
+                    _shiftNum = new TimeSpan(DateTime.Now.Ticks).Add(new TimeSpan(message.Time.Ticks).Negate()).Hours;
+                    // Never to do more than 168 (168 hours in a week) shifts for keeping the time complexity O(1).
+                    if (_shiftNum > 168)
+                    {
+                        _shiftNum = 168;
+                    }
+                }
+                else
+                {
+                    // Should be greater than 1 only for old messages when the server startup or for only the first new message.
+                    int currentShifts = _shiftNum - new TimeSpan(DateTime.Now.Ticks).Add(new TimeSpan(message.Time.Ticks).Negate()).Hours;
+                    for (int j = 0; j < currentShifts; j++)
+                    {
+                        // The 1 Hour interval progress shift the data in the array backward.
+                        for (int i = 0; i < 167; i++)
+                        {
+                            messagesPerHour[i] = messagesPerHour[i + 1];
+                            lettersPerHour[i] = lettersPerHour[i + 1];
+                        }
+                    }
+                    _shiftNum -= currentShifts;
+                }
                 messagesPerHour[167]++;
                 // Possible to use regular expression here to get only specific letters. (e.g. without spaces)
                 lettersPerHour[167] += message.Text.Length;
+
             }
             else if (MessagesList.Count != 0 && DateTime.Now.Subtract(MessagesList[MessagesList.Count - 1].Time).Hours >= 1)
             {
-                // Greater than 1 only in the first load of the server.
-                int shiftNum = 1;
-                if (_isFirstLoad && MessagesList.Count == FirstMessageIndex && FirstMessageIndex != 1)
+                // The 1 Hour interval progress shift the data in the array backward.
+                for (int i = 0; i < 167; i++)
                 {
-                    _isFirstLoad = false;
-                    shiftNum = DateTime.Now.Subtract(MessagesList[MessagesList.Count - 2].Time).Hours;
-                }
-                for (int j = 0; j < shiftNum; j++)
-                {
-                    // The 1 Hour interval progress shift the data in the array backward.
-                    for (int i = 0; i < 166; i++)
-                    {
-                        messagesPerHour[i] = messagesPerHour[i + 1];
-                        lettersPerHour[i] = lettersPerHour[i + 1];
-                    }
+                    messagesPerHour[i] = messagesPerHour[i + 1];
+                    lettersPerHour[i] = lettersPerHour[i + 1];
                 }
             }
         }

@@ -20,7 +20,7 @@ namespace ChatApp.Models
             MessagesCollection = _database.GetCollection<MessageModel>("Messages");
         }
 
-        // To save item (_item) in a collection (_col) use: _col.SaveAsync(_item).Wait();
+        // To save item (_item) in a collection (_col) use: _col.SaveAsync(_item);
         public static void SaveAsync<T>(this IMongoCollection<T> collection, T entity)
             where T : IIdentified
         {
