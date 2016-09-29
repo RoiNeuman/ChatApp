@@ -6,7 +6,8 @@ namespace ChatApp.Controllers
 {
     public class ChatController : Controller
     {
-        public static IList<MessageModel> MessagesList = new List<MessageModel>();
+        public static IList<MessageModel> MessagesList = Database.GetMessagesList();
+
 
         // GET /chat/statistics
         public JsonResult Statistics()

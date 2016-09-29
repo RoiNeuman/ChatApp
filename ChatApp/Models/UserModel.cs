@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using ChatApp.Controllers;
-using ChatApp.Hubs.Charts;
 
 namespace ChatApp.Models
 {
@@ -27,10 +26,11 @@ namespace ChatApp.Models
             Messages.Add(newMessage);
             GetAverageLattersPerMessage(newMessage);
             ChatController.MessagesList.Add(newMessage);
+            Database.MessagesCollection.SaveAsync(newMessage);
             return newMessage;
         }
 
-        private void GetAverageLattersPerMessage()
+        public void GetAverageLattersPerMessage()
         {
             if (Messages.Count == 0)
                 AverageLattersPerMessage = 0;

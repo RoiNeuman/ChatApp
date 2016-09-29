@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Web.Mvc;
 using ChatApp.Models;
 
@@ -14,12 +12,21 @@ namespace ChatApp.Controllers
         // GET /home/AddUser?Name="UserName"
         public ActionResult AddUser(string name)
         {
-            if (name == null || UserDictionary.ContainsKey(name))
+            if (name == null)
+            {
                 return Json(new {success = false}, JsonRequestBehavior.AllowGet);
-            Console.WriteLine(name);
-            UserModel newUser = new UserModel(name);
+            }
+            UserModel newUser;
+            if (UserDictionary.ContainsKey(name))
+            {
+                newUser = UserDictionary[name];
+            }
+            else
+            {
+                newUser = new UserModel(name);
+                UserDictionary.Add(name, newUser);
+            }
             Users.Add(newUser);
-            UserDictionary.Add(name, newUser);
             Session["userName"] = name;
             ViewBag.userName = name;
             return Json(new { success = true, name = name }, JsonRequestBehavior.AllowGet);

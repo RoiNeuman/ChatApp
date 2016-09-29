@@ -18,8 +18,11 @@ namespace ChatApp.Models
 
         // ---Statics variables for better time-complexity---
         // For AverageTimeForMessage:
-        private static TimeSpan _firstMessageTimeSpan;
+        public static long FirstMessageIndex;
+        //private static TimeSpan _firstMessageTimeSpan;
+        private static TimeSpan _lastMessageTimeSpan;
         private static double _sumMessagesTimeSum;
+        private static bool _isFirstMessage = true;
         // For AverageLettersPerMessage:
         private static double _lettersSum = 0;
         // For AverageLettersPerUser
@@ -27,6 +30,7 @@ namespace ChatApp.Models
         // For ChartStatistics
         private static int[] messagesPerHour = new int[168];
         private static int[] lettersPerHour = new int[168];
+        private static bool _isFirstLoad = true;
 
 
         public StatisticsModel()
@@ -36,6 +40,17 @@ namespace ChatApp.Models
 
         public void Init(MessageModel message)
         {
+            if (message != null && _isFirstMessage && MessagesList.Count == FirstMessageIndex)
+            {
+                // First run on the old messages
+                for (int i = 0; i < (MessagesList.Count-1); i++)
+                {
+                    AverageTimeForMessage(MessagesList[i]);
+                    AverageLettersPerMessage(MessagesList[i]);
+                    AverageLettersPerUser(MessagesList[i]);
+                    ChartStatistics(MessagesList[i]);
+                }
+            }
             // Each private method calculates and return the required values.
             _averageTimeForMessage = AverageTimeForMessage(message);
             _averageLettersPerMessage = AverageLettersPerMessage(message);
@@ -79,14 +94,18 @@ namespace ChatApp.Models
             if (message != null)
             {
                 TimeSpan newMessageTimeSpan = new TimeSpan(message.Time.Ticks);
-                if (MessagesList.Count == 1)
+                if (_isFirstMessage)
                 {
-                    _firstMessageTimeSpan = newMessageTimeSpan;
+                    _isFirstMessage = false;
+                    //_firstMessageTimeSpan = newMessageTimeSpan;
+                    _lastMessageTimeSpan = newMessageTimeSpan;
                     _sumMessagesTimeSum = 0;
                 }
                 else
                 {
-                    _sumMessagesTimeSum += newMessageTimeSpan.Add(_firstMessageTimeSpan.Negate()).Ticks;
+                    _sumMessagesTimeSum += newMessageTimeSpan.Add(_lastMessageTimeSpan.Negate()).Ticks;
+                    _lastMessageTimeSpan = newMessageTimeSpan;
+                    //_sumMessagesTimeSum += newMessageTimeSpan.Add(_firstMessageTimeSpan.Negate()).Ticks;
                 }
             }
             double avgTicks = _sumMessagesTimeSum / MessagesList.Count;
@@ -176,7 +195,7 @@ namespace ChatApp.Models
             return lettersPerHour;
         }
 
-        // MessagesPerHour & LetterPerHour with better time-complexity - O(1).
+        // MessagesPerHour & LetterPerHour with better time-complexity - O(1) (It's O(n) only one time on the server startup).
         private static void ChartStatistics(MessageModel message)
         {
             if (message != null)
@@ -187,10 +206,21 @@ namespace ChatApp.Models
             }
             else if (MessagesList.Count != 0 && DateTime.Now.Subtract(MessagesList[MessagesList.Count - 1].Time).Hours >= 1)
             {
-                // The 1 Hour interval progress the move the data in the array backward.
-                for (int i = 0; i < 166; i++)
+                // Greater than 1 only in the first load of the server.
+                int shiftNum = 1;
+                if (_isFirstLoad && MessagesList.Count == FirstMessageIndex && FirstMessageIndex != 1)
                 {
-                    messagesPerHour[i] = messagesPerHour[i + 1];
+                    _isFirstLoad = false;
+                    shiftNum = DateTime.Now.Subtract(MessagesList[MessagesList.Count - 2].Time).Hours;
+                }
+                for (int j = 0; j < shiftNum; j++)
+                {
+                    // The 1 Hour interval progress shift the data in the array backward.
+                    for (int i = 0; i < 166; i++)
+                    {
+                        messagesPerHour[i] = messagesPerHour[i + 1];
+                        lettersPerHour[i] = lettersPerHour[i + 1];
+                    }
                 }
             }
         }
