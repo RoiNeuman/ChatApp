@@ -196,7 +196,7 @@ namespace ChatApp.Models
             return lettersPerHour;
         }
 
-        // MessagesPerHour & LetterPerHour with better time-complexity - O(1) (It's O(n) only one time on the server startup).
+        // MessagesPerHour & LetterPerHour with better time-complexity - O(1) (It's like O(n) only one time on the server startup but with an upper limit keeping it O(1)).
         private static void ChartStatistics(MessageModel message)
         {
             if (message != null)
@@ -217,11 +217,12 @@ namespace ChatApp.Models
                     int currentShifts = _shiftNum - new TimeSpan(DateTime.Now.Ticks).Add(new TimeSpan(message.Time.Ticks).Negate()).Hours;
                     for (int j = 0; j < currentShifts; j++)
                     {
-                        // The 1 Hour interval progress shift the data in the array backward.
                         for (int i = 0; i < 167; i++)
                         {
                             messagesPerHour[i] = messagesPerHour[i + 1];
+                            messagesPerHour[i + 1] = 0;
                             lettersPerHour[i] = lettersPerHour[i + 1];
+                            lettersPerHour[i + 1] = 0;
                         }
                     }
                     _shiftNum -= currentShifts;
@@ -231,7 +232,7 @@ namespace ChatApp.Models
                 lettersPerHour[167] += message.Text.Length;
 
             }
-            else if (MessagesList.Count != 0 && DateTime.Now.Subtract(MessagesList[MessagesList.Count - 1].Time).Hours >= 1)
+            /*else if (MessagesList.Count != 0 && DateTime.Now.Subtract(MessagesList[MessagesList.Count - 1].Time).Hours >= 1)
             {
                 // The 1 Hour interval progress shift the data in the array backward.
                 for (int i = 0; i < 167; i++)
@@ -239,7 +240,7 @@ namespace ChatApp.Models
                     messagesPerHour[i] = messagesPerHour[i + 1];
                     lettersPerHour[i] = lettersPerHour[i + 1];
                 }
-            }
+            }*/
         }
     }
 }
